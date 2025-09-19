@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-List<Produto> produtos = new List<Produto>;
+List<Produto> produtos = new List<Produto>
 {
     new Produto { Nome = "Notebook", Quantidade = 2, Preco = 3500.00 },
     new Produto { Nome = "Mouse", Quantidade = 10, Preco = 150.50 },
@@ -20,13 +20,16 @@ List<Produto> produtos = new List<Produto>;
 // DELETE: Remove um recurso do servidor
 
 app.MapGet("/", () => "Página principal");
+
+// Listar todos os produtos
 app.MapGet("/api/produto/listar", () =>
 {
     if(produtos.Count>0)
          return Results.Ok(produtos);
-    return Results.NoContent();
+    return Results.BadRequest("Lista vazia");
 });
 
+// Cadastrar produto
 app.MapPost("/api/produto/cadastrar", ([FromBody] Produto produto)=>
 {
     foreach(Produto produtoCadastrado in produtos){
@@ -38,7 +41,9 @@ app.MapPost("/api/produto/cadastrar", ([FromBody] Produto produto)=>
     return Results.Created("", produto); 
 });
 
-app.MapGet("/api/produto/buscar/{nome}", ([FromRoute] string nome)=>{
+// Buscar produto por nome
+app.MapGet("/api/produto/buscar/{nome}", ([FromRoute] string nome) =>
+{
     // string nome = "Monitor";
     // foreach (Produto produtoCadastrado in produtos){
     //     if (produtoCadastrado.Nome == nome){
@@ -46,10 +51,39 @@ app.MapGet("/api/produto/buscar/{nome}", ([FromRoute] string nome)=>{
     //     }
     // }
     Produto? produtoEncontrado = produtos.FirstOrDefault(x => x.Nome == nome);
-    if(produtoEncontrado == null){
+    if (produtoEncontrado == null)
+    {
         return Results.NotFound("Produto não encontrado");
     }
     return Results.Ok(produtoEncontrado);
+});
+
+// Remover produto pelo nome
+app.MapDelete("/api/produto/deletar/{nome}", ([FromRoute] string nome) =>
+{
+    Produto? produtoEncontrado = produtos.FirstOrDefault(x => x.Nome == nome);
+    if (produtoEncontrado == null)
+    {
+        return Results.NotFound("Produto não encontrado");
+    }
+    produtos.Remove(produtoEncontrado);
+    return Results.Ok("Produto excluido com sucesso!");
+});
+
+app.MapPatch("/api/produto/atualizar/{nome}", ([FromRoute] string nome, [FromBody] Produto produtoAtualizado) =>
+{
+    Produto? produtoEncontrado = produtos.FirstOrDefault(x => x.Nome == nome);
+    if (produtoEncontrado == null)
+    {
+        return Results.NotFound("Produto não encontrado");
+    }
+
+    produtoEncontrado.Nome = produtoAtualizado.Nome;
+    produtoEncontrado.Quantidade = produtoAtualizado.Quantidade;
+    produtoEncontrado.Preco = produtoAtualizado.Preco;
+
+    // Retorna resposta de sucesso
+    return Results.Ok("Produto atualizado com sucesso!");
 });
 
 app.Run();

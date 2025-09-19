@@ -1,11 +1,14 @@
-###
+### Listar produtos
 
 GET http://localhost:5087/api/produto/listar
 
 ### Buscar produto por nome
 
 GET http://localhost:5087/api/produto/buscar/Mouse
-###
+
+### Deletar produto por nome
+DELETE http://localhost:5087/api/produto/deletar/Notebook
+### Cadastrar produto
 
 POST http://localhost:5087/api/produto/cadastrar
 Content-Type: application/json
@@ -14,4 +17,11 @@ Content-Type: application/json
     "nome": "Notebook",
     "quantidade": 123,
     "preco": 85.5
+}
+### Atualizar produto
+PATCH http://localhost:5087/api/produto/atualizar/Mouse
+Content-Type: application/json
+
+{
+    "nome": "Mouse Gamer"
 }
