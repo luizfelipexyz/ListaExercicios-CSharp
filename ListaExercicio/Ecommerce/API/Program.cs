@@ -2,7 +2,9 @@ using API.Models;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<AppDataContext>();
 var app = builder.Build();
+
 
 List<Produto> produtos = new List<Produto>
 {
@@ -22,35 +24,36 @@ List<Produto> produtos = new List<Produto>
 app.MapGet("/", () => "Página principal");
 
 // Listar todos os produtos
-app.MapGet("/api/produto/listar", () =>
+app.MapGet("/api/produto/listar", ([FromServices] AppDataContext ctx) =>
 {
-    if(produtos.Count>0)
-         return Results.Ok(produtos);
+    if(ctx.Produtos.Count()>0)
+         return Results.Ok(ctx.Produtos.ToList());
     return Results.BadRequest("Lista vazia");
 });
 
 // Cadastrar produto
-app.MapPost("/api/produto/cadastrar", ([FromBody] Produto produto)=>
+app.MapPost("/api/produto/cadastrar", ([FromBody] Produto produto, [FromServices] AppDataContext ctx)=>
 {
-    foreach(Produto produtoCadastrado in produtos){
-        if(produtoCadastrado.Nome == produto.Nome){
-            return Results.Conflict("Produto ja cadastrado!");
-        }
+    Produto? produtoEncontrado = ctx.Produtos.FirstOrDefault(x => x.Nome == produto.Nome);
+    if (produtoEncontrado is not null)
+    {
+        return Results.Conflict("Produto já existente!");
     }
-    produtos.Add(produto);   
+    ctx.Produtos.Add(produto);
+    ctx.SaveChanges();
     return Results.Created("", produto); 
 });
 
 // Buscar produto por nome
-app.MapGet("/api/produto/buscar/{nome}", ([FromRoute] string nome) =>
+app.MapGet("/api/produto/buscar/{id}", ([FromRoute] string id, [FromServices] AppDataContext ctx) =>
 {
-    // string nome = "Monitor";
+    // string i = "Monitor";
     // foreach (Produto produtoCadastrado in produtos){
     //     if (produtoCadastrado.Nome == nome){
     //         return Results.Ok(produtoCadastrado);
     //     }
     // }
-    Produto? produtoEncontrado = produtos.FirstOrDefault(x => x.Nome == nome);
+    Produto? produtoEncontrado = ctx.Produtos.Find(id); // find so funciona pra chave primaria
     if (produtoEncontrado == null)
     {
         return Results.NotFound("Produto não encontrado");
@@ -59,7 +62,7 @@ app.MapGet("/api/produto/buscar/{nome}", ([FromRoute] string nome) =>
 });
 
 // Remover produto pelo nome
-app.MapDelete("/api/produto/deletar/{nome}", ([FromRoute] string nome) =>
+app.MapDelete("/api/produto/deletar/{nome}", ([FromRoute] string nome, [FromServices] AppDataContext ctx) =>
 {
     Produto? produtoEncontrado = produtos.FirstOrDefault(x => x.Nome == nome);
     if (produtoEncontrado == null)
@@ -70,7 +73,7 @@ app.MapDelete("/api/produto/deletar/{nome}", ([FromRoute] string nome) =>
     return Results.Ok("Produto excluido com sucesso!");
 });
 
-app.MapPatch("/api/produto/atualizar/{nome}", ([FromRoute] string nome, [FromBody] Produto produtoAtualizado) =>
+app.MapPatch("/api/produto/atualizar/{nome}", ([FromRoute] string nome, [FromBody] Produto produtoAtualizado, [FromServices] AppDataContext ctx) =>
 {
     Produto? produtoEncontrado = produtos.FirstOrDefault(x => x.Nome == nome);
     if (produtoEncontrado == null)
