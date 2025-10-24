@@ -3,6 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDataContext>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Acesso total", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 
@@ -88,6 +99,7 @@ app.MapPatch("/api/produto/atualizar/{nome}", ([FromRoute] string nome, [FromBod
     // Retorna resposta de sucesso
     return Results.Ok("Produto atualizado com sucesso!");
 });
+app.UseCors("Acesso total");
 
 app.Run();
 
