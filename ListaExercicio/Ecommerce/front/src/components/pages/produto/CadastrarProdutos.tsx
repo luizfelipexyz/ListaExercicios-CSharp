@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import Produto from '../../../models/Produto';
+import axios from 'axios';
 
 function CadastrarProduto() {
 
@@ -19,22 +20,13 @@ function CadastrarProduto() {
 
         try {
             const produto : Produto = {
-                nome: nome,
-                descricao: descricao,
-                preco: preco,
-                quantidade: quantidade
+                nome,
+                descricao,
+                preco,
+                quantidade
             }
-            const resposta = await fetch("http://localhost:5087/api/produto/cadastrar", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(produto)
-            });
-            if(!resposta.ok) {
-                throw new Error("Erro na requisição: " + resposta.statusText);
-            }
-            console.log(await resposta.json());
+            const resposta = await axios.post("http://localhost:5087/api/produto/cadastrar", produto);
+            console.log(await resposta.data);
         } catch (error) {
             console.error("Erro no cadastro do produto: "+error);
         }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Produto from "../../../models/Produto";
+import axios from "axios";
 // Componente
 // - Composto por HTML, CSS e JS ou TS
 
@@ -22,15 +23,10 @@ function ListarProdutos(){
     async function buscarProdutosAPI(){
 
         try {
-            const resposta = await fetch("http://localhost:5087/api/produto/listar");
-        
-            console.log(resposta)
-            if(!resposta.ok){
-                throw new Error("Erro na requisição" + resposta.statusText)
-            }
-            
-            const dados = await resposta.json();
-            setProdutos(dados);
+
+            const resposta = await axios.get("http://localhost:5087/api/produto/listar");
+            setProdutos(resposta.data);
+
         } catch (error) {
             console.log("Erro na requisição: "+error)
         }
@@ -53,7 +49,7 @@ function ListarProdutos(){
                 </tr>
             </thead>
             <tbody>
-                {produtos.map((produto : Produto)=> // map e basicamente um for each q percorre cada item
+                {produtos.map((produto)=> // map e basicamente um for each q percorre cada item
                 <tr>
                     <td>{produto.id}</td>
                     <td>{produto.nome}</td>
